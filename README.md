@@ -8,7 +8,7 @@
 # Documents
 
 <p align="center" width="100%">
-    <img width="95%" src="https://github.com/rikosintie/CookBook/blob/main/Aruba/images/word_cloud.png"> 
+    <img width="95%" src="https://github.com/rikosintie/CookBook/blob/main/Aruba/images/document.png"> 
 </p>
 
 Repository for documents linked to mwhubbard.blogspot.com and used in the python scripts on github.com
