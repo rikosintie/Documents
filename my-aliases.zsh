@@ -98,6 +98,18 @@ alias mw-vmware='/media/mhubbard/Data1/VMs/VMware-Update-after-Kernel-upgrade.sh
 # mw-vmnet - Change permission on VMware vnet after upgrading the kernel $1 for vmnet number
 alias mw-vmnet='(){sudo chmod a+rw /dev/vmnet$1}'
 
+# edit the tftp configuration file 
+alias mw-tftp-conf='sudo nano /etc/default/tftpd-hpa'
+
+# start tftpd-hfa and display the status
+alias mw-tftp='systemctl start tftpd-hpa && sudo ufw allow from any to any proto udp port 69 && systemctl status tftpd-hpa && sudo sudo ufw status verbose'
+
+#stop tftpd-hfa
+alias mw-tftp-stop='systemctl stop tftpd-hpa && sudo ufw delete allow from any to any proto udp port 69 && sudo sudo ufw status verbose'
+
+# add tftp to the firewall
+alias mw-tftp-fw='ufw allow from any to any proto udp port 69'
+
 # mw-chrome - start chrome and allow local file read
 alias mw-chrome='cd /opt/google/chrome;./chrome --allow-file-access-from-files'
 
