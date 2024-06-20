@@ -1,5 +1,5 @@
 <a href="https://mwhubbard.blogspot.com"><img alt="GitHub" src="https://img.shields.io/github/license/rikosintie/CookBook"></a>
-![GitHub repo file count](https://img.shields.io/github/directory-file-count/rikosintie/CookBook)
+![GitHub repo file count](https://img.shields.io/github/directory-file-count/rikosintie/Documents)
 ![GitHub last commit](https://img.shields.io/github/last-commit/rikosintie/Documents)
 
 </br>
