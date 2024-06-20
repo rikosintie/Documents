@@ -77,7 +77,6 @@ plugins=(
     zsh-autosuggestions
     zsh-syntax-highlighting
     history-substring-search
-    autojump
     aliases
     colored-man-pages
     thefuck
