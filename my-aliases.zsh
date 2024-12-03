@@ -26,13 +26,13 @@ alias mw-interface='ip addr show | grep ": \w*"'
 alias mw-interface-vlan='ip addr show | grep ": \w*\.[0-9]*@\w*"'
 
 # mw-extip - show the public IP address your are using
-alias mw-extip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com;dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/"//g"'
 
 # mw-ipen0 - show IP info for wlan0
 alias mw-ipen0='ip addr show wlp61s0 | grep "link\|inet";ip route | grep default | grep wlp0s20f3;nmcli dev show wlp61s0 | grep DNS | grep IP4'
 
 # mw-ipen6 - show IP info for enp60s0
-alias mw-ipen6='ip addr show enp60s0 | grep "link\|inet";ip route | grep default | grep enp60s0;nmcli dev show enp60s0 | grep DNS | grep IP4'
+alias mw-ipen6='ip addr show enp60s0 | grep "link\|inet";ip route | grep default | grep enp60s0;nmcli dev show enp60s0 && grep DNS'
 
 # mw-ipen8 - show IP info for enp8s0
 alias mw-ipen8='ip addr show enp8s0 | grep "link\|inet";ip route | grep default | grep enp60s0;nmcli dev show enp60s0 | grep DNS | grep IP4;ip addr show enp60s0 | grep inet6'
@@ -80,6 +80,9 @@ alias mw-running_services='systemctl list-units --type=service --state=running'
 # alias mw-manuf='() {cd ~/Insync/michael.hubbard999@gmail.com/GoogleDrive/Python/Scripts/prod && python3 manuf.py $1 && cd -}'
 alias mw-manuf='() {j prod && python3 manuf.py $1 && cd -}'
 
+#Run the nmap ntp-info script. $1 is the ip of the ntp server.
+alias mw-ntp='(){sudo nmap -sU -p 123 --script ntp-info $1}'
+
 # open ~/.oh-my-zsh/custom/my-aliases.zsh
 alias ec1='$EDITOR ~/.oh-my-zsh/custom/my-aliases.zsh'
 
@@ -89,14 +92,19 @@ alias sc='exec zsh'
 # mw-dang - add sudo and repeat the last command
 alias mw-dang='sudo $(fc -ln -1)'
 
+alias wtf='(){man $1}'
+
 # mw-ports show netstat ports
 alias mw-ports='netstat -tulanp'
 
 # mw-vmware - Recompile VMware kernel
-alias mw-vmware='/media/mhubbard/Data1/VMs/VMware-Update-after-Kernel-upgrade.sh'
+alias mw-vmware='cd /media/mhubbard/Data1/VMs && ./VMware-Update-after-Kernel-upgrade.sh'
 
 # mw-vmnet - Change permission on VMware vnet after upgrading the kernel $1 for vmnet number
 alias mw-vmnet='(){sudo chmod a+rw /dev/vmnet$1}'
+
+# mw-vmnet-all - Change permission on VMware vnet after upgrading the kernel
+alias mw-vmnet-all='sudo chmod a+rw /dev/vmnet*'
 
 # edit the tftp configuration file 
 alias mw-tftp-conf='sudo nano /etc/default/tftpd-hpa'
@@ -109,6 +117,26 @@ alias mw-tftp-stop='systemctl stop tftpd-hpa && sudo ufw delete allow from any t
 
 # add tftp to the firewall
 alias mw-tftp-fw='ufw allow from any to any proto udp port 69'
+
+
+# start the ssh daemon and display the status
+alias mw-ssh='sudo systemctl start ssh && sudo ufw allow 22/tcp comment "Open port ssh tcp port 22" && sudo systemctl status ssh && sudo ufw status numbered'
+
+# stop the ssh daemon and display the status
+alias mw-ssh-stop='sudo systemctl stop ssh && sudo ufw delete allow 22/tcp && sudo systemctl status ssh && sudo ufw status numbered'
+
+# Start/stop/status of systemd services
+alias mw-start='(){sudo systemctl start $1}'
+alias mw-restart='(){sudo systemctl restart $1}'
+alias mw-reload='(){sudo systemctl reload $1}'
+alias mw-stop='(){sudo systemctl stop $1}'
+alias mw-status='(){sudo systemctl status $1}'
+
+# mount the WD 3TB Drive
+alias mw-mount='sudo mount -t ntfs-3g /dev/sdb1 /mnt/WD-3TB'
+
+# Unmount the WD 3TB Drive
+alias mw-umount='sudo umount /dev/sdb1'
 
 # mw-chrome - start chrome and allow local file read
 alias mw-chrome='cd /opt/google/chrome;./chrome --allow-file-access-from-files'
@@ -137,10 +165,10 @@ alias l.='ls -lhFa --time-style=long-iso --color=auto'
 alias ls='ls -lhF --time-style=long-iso --color=auto'
 
 # EXA aliases
-alias exa1='exa -lFT --group-directories-first'
+alias mw-exa1='exa -lFT --group-directories-first'
 
 # exa2 display directories first, sort by extension
-alias exa2='exa -lF -s extension --group-directories-first'
+alias mw-exa2='exa -lF -s extension --group-directories-first'
 
 # alias mw-bright60='xrandr --output eDP-1 --brightness 0.60'
 
@@ -164,8 +192,22 @@ alias mw-cpu5='ps auxf | sort -nr -k 3 | head -5'
 # mw-cpu10 - get top process eating cpu
 alias mw-cpu10='ps auxf | sort -nr -k 3 | head -10'
 
+# Bauh - Appimage, snap, flatpak manager
+alias mw-bauh='() {cd ~/Insync/michael.hubbard999@gmail.com/GoogleDrive/04_Tools/Bauh && source venv/bin/activate && bauh}'
+
+# lookup MAC vender from OUI. The final command cd - returns to the directory that the command started in.
+alias mw-manuf='() {cd ~/Insync/michael.hubbard999@gmail.com/GoogleDrive/Python/Scripts/prod && python3 manuf.py $1 && cd -}'
+
+# Log into the Juniper vmx router
+alias juniper='ssh -i ~/.ssh/juniper_ed25519_key root@192.168.10.162 H3lpd3sk | ct'
+
+# start termianl RPN calculator
+alias rpn='flatpak run fr.rubet.rpn'
+
 bindkey "^[[A" history-search-backward
 bindkey "^[[B" history-search-forward
+
+eval $(thefuck --alias)
 
 # Prevent duplicates in history
 setopt hist_ignore_all_dups hist_save_nodups
