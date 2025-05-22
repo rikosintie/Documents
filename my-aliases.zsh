@@ -162,13 +162,23 @@ alias mv='mv -iv'
 alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -'
 
 alias l.='ls -lhFa --time-style=long-iso --color=auto'
-alias ls='ls -lhF --time-style=long-iso --color=auto'
 
-# EXA aliases
-alias mw-exa1='exa -lFT --group-directories-first'
+# Use Brew-installed tools as defaults
+alias ls='eza --icons'       # Modern ls with icons
+alias la='eza -la --icons'   # ls -la alternative
+alias ll='eza -l --icons'    # ls -l alternative
+alias find='fd'              # Faster find
+alias grep='rg'              # Faster grep (ripgrep)
+alias du='dust'              # Better du
+alias top='btm'              # Better top
+alias df='duf'	  			 # Better DF
+alias ps='procs'             # ps (process viewer with colors)
+
+# EZA aliases 
+alias mw-eza1='eza -lT --group-directories-first'
 
 # exa2 display directories first, sort by extension
-alias mw-exa2='exa -lF -s extension --group-directories-first'
+alias mw-eza2='eza -lF -s extension --group-directories-first'
 
 # alias mw-bright60='xrandr --output eDP-1 --brightness 0.60'
 
@@ -198,16 +208,39 @@ alias mw-bauh='() {cd ~/Insync/michael.hubbard999@gmail.com/GoogleDrive/04_Tools
 # lookup MAC vender from OUI. The final command cd - returns to the directory that the command started in.
 alias mw-manuf='() {cd ~/Insync/michael.hubbard999@gmail.com/GoogleDrive/Python/Scripts/prod && python3 manuf.py $1 && cd -}'
 
+# Tailspin using cx-config.toml
+alias tspincx='tspin --print --config-path ~/.config/tailspin/cx-config.toml $1'
+
+# Tailspin using ios-config.toml
+alias tspinios='tspin --print --config-path ~/.config/tailspin/IOS-config.toml $1'
+
 # Log into the Juniper vmx router
 alias juniper='ssh -i ~/.ssh/juniper_ed25519_key root@192.168.10.162 H3lpd3sk | ct'
 
 # start termianl RPN calculator
 alias rpn='flatpak run fr.rubet.rpn'
 
+# Open the expanso base.yml file
+alias espanso-base="espanso path | grep Config | awk '{ print \$2\"/match/base.yml\" }' | xargs micro"
+
+# EZA
+alias eza='eza --long --sort=name --group-directories-first'
+alias ezat='eza --tree --long --sort=name'
+
+# Pull the password from netperf.bufferbloat.net, parse it and pass to betterspeedtest
+alias          bst="curl https://netperf.bufferbloat.net/ | grep \"Today's passphrase\" | awk '{ print \$4 }' | cut -c 7-20 | xargs -0 -I % betterspeedtest.sh -Z \"%\""
+
+# Check which compositor is running
+alias way="echo $XDG_SESSION_TYPE"
+
 bindkey "^[[A" history-search-backward
 bindkey "^[[B" history-search-forward
 
-eval $(thefuck --alias)
+# Create a new directory and enter it
+mkd() {
+    mkdir -p "$@"
+    cd "$@" || exit
+}
 
 # Prevent duplicates in history
 setopt hist_ignore_all_dups hist_save_nodups
