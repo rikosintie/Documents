@@ -43,7 +43,7 @@ ZSH_THEME="amuse"
 # DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+ENABLE_CORRECTION="true"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
 # Caution: this setting can cause issues with multiline prompts (zsh 5.7.1 and newer seem to work)
@@ -74,13 +74,10 @@ ZSH_THEME="amuse"
 plugins=(
     git 
     zsh-completions 
-    zsh-autosuggestions 
-    zsh-syntax-highlighting 
+    zsh-autosuggestions  
     history-substring-search 
-    autojump 
-    aliases 
     colored-man-pages 
-    thefuck
+    zsh-docker-aliases
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -96,7 +93,7 @@ source $ZSH/oh-my-zsh.sh
 if [[ -n $SSH_CONNECTION ]]; then
    export EDITOR='gedit'
  else
-   export EDITOR='subl'
+   export EDITOR='micro'
  fi
 
 # Compilation flags
@@ -113,10 +110,19 @@ if [[ -n $SSH_CONNECTION ]]; then
 # alias python=python3
 # alias pip=pip3
 
+# Call system ping instead of the brew installed ping
+alias ping='/usr/bin/ping "$@"'
+
+# Call system curl instead of the brew installed curl
+alias curl='/usr/bin/curl "$@"'
+
 # open ~/.zshrc in using the default editor specified in $EDITOR
 alias ec="$EDITOR $HOME/.zshrc"
 # rerun ~/.zshrc after making changes
 alias sc="exec zsh"
+
+# VS Code Flatpak alias (Wayland-friendly)
+alias code="flatpak run com.visualstudio.code"
 
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
@@ -125,4 +131,29 @@ eval "$(zoxide init zsh)"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Configure fzf
-eval "$(fzf --zsh)"
+# eval "$(fzf --zsh)"
+source <(fzf --zsh)
+
+# onefetch git repository greeter
+last_repository=
+check_directory_for_new_repository() {
+ current_repository=$(git rev-parse --show-toplevel 2> /dev/null)
+ 
+ if [ "$current_repository" ] && \
+    [ "$current_repository" != "$last_repository" ]; then
+  onefetch
+ fi
+ last_repository=$current_repository
+}
+cd() {
+ builtin cd "$@"
+ check_directory_for_new_repository
+}
+
+# optional, greet also when opening shell directly in repository directory
+# adds time to startup
+check_directory_for_new_repository
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
