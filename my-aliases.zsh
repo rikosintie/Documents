@@ -256,3 +256,8 @@ path() {
         echo $PATH | perl -p -e "s/:/\n/g;"
     }
 }
+# Fix sniffnet after an upgrade
+fix-sniffnet() {
+  sudo setcap cap_net_raw,cap_net_admin=eip "$(readlink -f "$(which sniffnet)")"
+  echo "✅ Sniffnet capabilities fixed!"
+}
