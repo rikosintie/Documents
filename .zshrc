@@ -124,6 +124,9 @@ alias sc="exec zsh"
 # VS Code Flatpak alias (Wayland-friendly)
 alias code="flatpak run com.visualstudio.code"
 
+#call Gnome Text Editor
+alias gte="gnome-text-editor"
+
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 # Zoxide https://github.com/ajeetdsouza/zoxide
