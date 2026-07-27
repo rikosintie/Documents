@@ -173,6 +173,80 @@ mw-eth() {
     fi
 }
 
+mw-eth1() {
+    # If the machine has KVM installed, use this instead of mw-eth()
+    local dev ethintf connected=0
+
+    for dev in /sys/class/net/*(N); do
+        ethintf=${dev:t}
+
+        # Match physical non-wireless interfaces OR bridges (br0, virbr0)
+        if { [[ -e "$dev/device" && ! -d "$dev/wireless" ]] || [[ -d "$dev/bridge" ]]; }; then
+
+            # Skip if interface is down or has no IPv4 address assigned
+            if ip link show "$ethintf" | grep -qE "state UP|LOWER_UP" && ip addr show "$ethintf" | grep -q "inet"; then
+                connected=1
+
+                _mw_hdr "=== Interface: ${_c_bold_cyan}${ethintf}${_c_reset} ==="
+
+                ip addr show "$ethintf" | grep "link\|inet" | _color_net "$ethintf"
+                ip route | grep -w "$ethintf" | _color_net "$ethintf"
+
+                nmcli dev show "$ethintf" | grep "IP4" | _color_net "$ethintf"
+
+                if nmcli dev show "$ethintf" | grep -q "IP6"; then
+                    _mw_sep
+                    nmcli dev show "$ethintf" | grep "IP6" | _color_net "$ethintf"
+                fi
+
+                # If this interface is a bridge, inspect attached KVM VMs
+                if [[ -d "$dev/bridge" ]] && command -v virsh >/dev/null 2>&1; then
+                    local vm_info=""
+                    local vm mac ip vm_bridge
+
+                    for vm in $(virsh -c qemu:///system list --name --state-running 2>/dev/null); do
+                        # Extract the bridge or network name this VM interface is wired to
+                        vm_bridge=$(virsh -c qemu:///system dumpxml "$vm" 2>/dev/null | grep -oP "(?<=<source bridge=')[\w\d_-]+|(?<=<source network=')[\w\d_-]+")
+
+                        # Translate default libvirt NAT network name 'default' to 'virbr0'
+                        [[ "$vm_bridge" == "default" ]] && vm_bridge="virbr0"
+
+                        # Only process this VM if it is attached to the CURRENT interface ($ethintf)
+                        if [[ "$vm_bridge" == "$ethintf" ]]; then
+                            mac=$(virsh -c qemu:///system dumpxml "$vm" 2>/dev/null | grep "mac address" | cut -d"'" -f2)
+                            if [[ -n "$mac" ]]; then
+                                # 1. Try virsh domifaddr first (Great for NAT/virbr0 & ARP)
+                                ip=$(virsh -c qemu:///system domifaddr "$vm" --source arp 2>/dev/null | grep -i "$mac" | awk '{print $4}')
+
+                                # 2. Fallback to host ARP table if domifaddr is empty (Great for Bridged/br0)
+                                if [[ -z "$ip" ]]; then
+                                    ip=$(ip neighbor show dev "$ethintf" | grep -i "$mac" | awk '{print $1}')
+                                fi
+
+                                if [[ -n "$ip" ]]; then
+                                    vm_info+="$(printf "  %-25s %s -> %s\n" "$vm:" "$mac" "$ip")\n"
+                                fi
+                            fi
+                        fi
+                    done
+
+                    if [[ -n "$vm_info" ]]; then
+                        _mw_sep
+                        echo "${_c_bold_yellow}Attached Active KVM VMs on $ethintf:${_c_reset}"
+                        echo -e "$vm_info" | _color_net "$ethintf"
+                    fi
+                fi
+
+                echo ""
+            fi
+        fi
+    done
+
+    if (( connected == 0 )); then
+        echo "No active Ethernet or Bridge interfaces with IP addresses found."
+    fi
+}
+
 # mw-ipwlan0 - show IP info for wlan0
 alias mw-ipwlan0='ip addr show wlp3s0 | grep "link\|inet";ip route | grep default | grep wlp0s20f3;nmcli dev show wlp3s0 | grep DNS | grep IP4'
 
