@@ -80,39 +80,12 @@ _mw_sep() { printf "\n---------------------\n\n"; }
 
 # -------------------------------------------------------------------------------
 
-#call Gnome Text Editor
-alias gte="gnome-text-editor"
+#
+# Ran sudo usermod -aG libvirt $USER to add myself to the libvirt group. Then export the URI
+# so that virsh command don't need to be prefaced with sudo'
+export LIBVIRT_DEFAULT_URI="qemu:///system"
 
-# bd jumps backward in paths https://github.com/vigneshwaranr/bd
-alias bd='. bd -si'
-
-# run bat instead of cat
-alias cat="bat"
-
-# gsw - run gnome-screenshot capture window
-alias gsw='gnome-screenshot -w'
-
-# gsa - run gnome-screenshot capture area
-alias gsa='gnome-screenshot -a'
-
-alias python=python3
-# alias pip=pip3
-
-# mw-sensors - show temperatures
-alias mw-sensors='sensors'
-
-# mw-nmcli-examples - show nmcli examples
-alias mw-nmcli-examples='man nmcli-examples'
-
-# mw-interface - show only interfaces
-alias mw-interface='ip addr show | grep ": \w*"'
-
-# mw-interface-vlan - show only interfaces with vlan tags
-alias mw-interface-vlan='ip addr show | grep ": \w*\.[0-9]*@\w*"'
-
-# mw-extip - show the public IP address your are using
-# alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com;dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/"//g"'
-alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com; dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/\"//g"'
+# -------------------------------------------------------------------------------
 
 mw-wifi() {
     local wintf dev
@@ -246,6 +219,40 @@ mw-eth1() {
         echo "No active Ethernet or Bridge interfaces with IP addresses found."
     fi
 }
+
+#call Gnome Text Editor
+alias gte="gnome-text-editor"
+
+# bd jumps backward in paths https://github.com/vigneshwaranr/bd
+alias bd='. bd -si'
+
+# run bat instead of cat
+alias cat="bat"
+
+# gsw - run gnome-screenshot capture window
+alias gsw='gnome-screenshot -w'
+
+# gsa - run gnome-screenshot capture area
+alias gsa='gnome-screenshot -a'
+
+alias python=python3
+# alias pip=pip3
+
+# mw-sensors - show temperatures
+alias mw-sensors='sensors'
+
+# mw-nmcli-examples - show nmcli examples
+alias mw-nmcli-examples='man nmcli-examples'
+
+# mw-interface - show only interfaces
+alias mw-interface='ip addr show | grep ": \w*"'
+
+# mw-interface-vlan - show only interfaces with vlan tags
+alias mw-interface-vlan='ip addr show | grep ": \w*\.[0-9]*@\w*"'
+
+# mw-extip - show the public IP address your are using
+# alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com;dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/"//g"'
+alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com; dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/\"//g"'
 
 # mw-ipwlan0 - show IP info for wlan0
 alias mw-ipwlan0='ip addr show wlp3s0 | grep "link\|inet";ip route | grep default | grep wlp0s20f3;nmcli dev show wlp3s0 | grep DNS | grep IP4'
