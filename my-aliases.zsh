@@ -32,8 +32,44 @@ alias mw-interface-vlan='ip addr show | grep ": \w*\.[0-9]*@\w*"'
 # alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com;dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/"//g"'
 alias mw-extip='dig +short myip.opendns.com @resolver1.opendns.com; dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed "s/\"//g"'
 
-# mw-ipen0 - show IP info for wlan0
-alias mw-ipen0='ip addr show wlp61s0 | grep "link\|inet";ip route | grep default | grep wlp0s20f3;nmcli dev show wlp61s0 | grep DNS | grep IP4'
+mw-wifi() {
+    local wintf dev
+
+    # detect the wifi interface via sysfs
+    for dev in /sys/class/net/*(N); do
+        [[ -d "$dev/wireless" ]] && { wintf=${dev:t}; break; }
+    done
+
+    ip route | grep default
+    nmcli dev show $wintf | grep "IP4"
+    nmcli dev show $wintf | grep "IP6"
+}
+
+mw-eth() {
+    local dev ethintf connected=0
+
+    for dev in /sys/class/net/*(N); do
+        if [[ -e "$dev/device" && ! -d "$dev/wireless" ]]; then
+            ethintf=${dev:t}
+            
+            # Skip if interface is down
+            if ip link show "$ethintf" | grep -qE "state UP|LOWER_UP"; then
+                connected=1
+                echo "=== Interface: $ethintf ==="
+                ip addr show $ethintf | grep "link\|inet"
+                ip route | grep $ethintf
+                nmcli dev show $ethintf | grep -E "IP4|IP6"
+                echo ""
+            fi
+        fi
+    done
+
+    if (( connected == 0 )); then
+        echo "No active Ethernet interfaces connected."
+    fi
+}
+# mw-ipwlan0 - show IP info for wlan0
+alias mw-ipwlan0='ip addr show wlp3s0 | grep "link\|inet";ip route | grep default | grep wlp0s20f3;nmcli dev show wlp3s0 | grep DNS | grep IP4'
 
 # mw-ipen6 - show IP info for enp60s0
 alias mw-ipen6='ip addr show enp60s0 | grep "link\|inet";ip route | grep default | grep enp60s0;nmcli dev show enp60s0 && grep DNS'
@@ -51,11 +87,13 @@ alias mw-nmshrun="nmcli -t -f RUNNING general"
 alias mw-nmshstate="nmcli -t -f STATE general"
 
 # mw-nmcli-vlan-dhcp - add a vlan interface $1 is the vlan id
-alias mw-nmcli-vlan-dhcp='(){nmcli con add type vlan con-name vl$1 dev enp60s0 id $1 autoconnect yes}'
-
+mw-nmcli-vlan-dhcp() {
+  nmcli con add type vlan con-name vl$1 dev enp60s0 id $1 autoconnect yes
+}
 # mw-nmcli-vlan-mac - change the MAC on the vlan interface $1 vlan id, $2 MAC with colons
-alias mw-nmcli-vlan-mac='(){sudo ifconfig enp60s0.$1 hw ether $2}'
-
+mw-nmcli-vlan-mac() {
+  sudo ifconfig enp60s0.$1 hw ether $2
+}
 # mw-nmshprofiles - show network connection profiles $1 is interface name
 alias mw-nmshprofiles='(){nmcli -a -f CONNECTIONS device show $1}'
 
@@ -64,6 +102,7 @@ alias mw-nmconnectprof='(){nmcli -p connection up "$1" ifname $2}'
 
 # mw-nmshipv4 - show profile IPv4 settings. Profile must be active. $1 is profile name I.E. "Wired connection 1"
 alias mw-nmshipv4='(){nmcli -a -f IP4 connection show $1}'
+alias mw-nmshipv6='(){nmcli -a -f IP6 connection show $1}'
 
 # mw-nmwifi - show wifi properties
 alias mw-nmwifi='nmcli -f GENERAL,WIFI-PROPERTIES dev show $1'
