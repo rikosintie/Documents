@@ -1,3 +1,85 @@
+# ===============================================================================
+# ANSI COLOR CHEAT SHEET
+# ===============================================================================
+# | Style / Color   | Code     | Example in Zsh/Bash              |
+# | --------------- | -------- | -------------------------------- |
+# | Reset All       | 0        | `\e[0m` (Crucial to clear style) |
+# | Bold / Bright   | 1;       | `\e[1;32m` (Bold Green)          |
+# | Dim / Faint     | 2;       | `\e[2;37m` (Muted/Gray text)     |
+# | Underline       | 4        | `\e[4m`                          |
+# | --------------- | -------- | -------------------------------- |
+# | Black           | 30       | `\e[30m`                         |
+# | Red             | 31       | `\e[31m`                         |
+# | Green           | 32       | `\e[32m`                         |
+# | Yellow          | 33       | `\e[33m`                         |
+# | Blue            | 34       | `\e[34m`                         |
+# | Magenta         | 35       | `\e[35m`                         |
+# | Cyan            | 36       | `\e[36m`                         |
+# | White           | 37       | `\e[37m`                         |
+# | Bright Black    | 90       | `\e[90m` (Dark Gray)             |
+# | --------------- | -------- | -------------------------------- |
+# | BG Red          | 41       | `\e[41m` (Useful for alerts)     |
+# | BG Yellow       | 43       | `\e[43m`                         |
+
+# ===============================================================================
+# COLOR HELPER DEFINITIONS
+# ===============================================================================
+# Styles
+_c_reset=$'\e[0m'
+_c_bold=$'\e[1m'
+_c_dim=$'\e[2m'
+_c_underline=$'\e[4m'
+
+# Regular Text Colors
+_c_black=$'\e[30m'
+_c_red=$'\e[31m'
+_c_green=$'\e[32m'
+_c_yellow=$'\e[33m'
+_c_blue=$'\e[34m'
+_c_magenta=$'\e[35m'
+_c_cyan=$'\e[36m'
+_c_white=$'\e[37m'
+_c_gray=$'\e[90m'
+
+# Bold / Intense Text Colors
+_c_bold_black=$'\e[1;30m'
+_c_bold_red=$'\e[1;31m'
+_c_bold_green=$'\e[1;32m'
+_c_bold_yellow=$'\e[1;33m'
+_c_bold_blue=$'\e[1;34m'
+_c_bold_magenta=$'\e[1;35m'
+_c_bold_cyan=$'\e[1;36m'
+_c_bold_white=$'\e[1;37m'
+
+# Background Colors
+_c_bg_red=$'\e[41m'
+_c_bg_yellow=$'\e[43m'
+
+# -------------------------------------------------------------------------------
+
+# Pass raw text through this to colorize network patterns
+_color_net() {
+    local iface="$1"
+    sed -E \
+        -e "s/([0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5})/${_c_yellow}\1${_c_reset}/g" \
+        -e "s/([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(\/[0-9]{1,2})?)/${_c_bold_green}\1${_c_reset}/g" \
+        -e "s/([0-9a-fA-F]{1,4}(:[0-9a-fA-F]{0,4}){2,7}(\/[0-9]{1,3})?)/${_c_magenta}\1${_c_reset}/g" \
+        -e "s/(GATEWAY)/${_c_bold_yellow}\1${_c_reset}/g" \
+        -e "s/(DNS)/${_c_bold_yellow}\1${_c_reset}/g" \
+        -e "s/(DOMAIN)/${_c_bold_yellow}\1${_c_reset}/g" \
+        -e "s/(metric [0-9]+)/${_c_dim}\1${_c_reset}/g" \
+        -e "s/\b(${iface})\b/${_c_bold_cyan}\1${_c_reset}/g"
+}
+
+# -------------------------------------------------------------------------------
+
+# red section header + separator helpers (top-level so they're
+# defined once and don't leak/redefine on every call)
+_mw_hdr() { printf "\e[31m         %s\e[0m\n\n" "$1"; }
+_mw_sep() { printf "\n---------------------\n\n"; }
+
+# -------------------------------------------------------------------------------
+
 #call Gnome Text Editor
 alias gte="gnome-text-editor"
 
@@ -46,28 +128,51 @@ mw-wifi() {
 }
 
 mw-eth() {
+
+    # coloring
+    # Interface Names (br0, enx..., eno1): Bold Cyan everywhere they appear (including in the routes and headers).
+    # IPv4 Addresses & Subnets: Bold Green.
+    # IPv6 Addresses: Magenta.
+    # MAC Addresses: Yellow.
+    # metric <number>: Dim/Faint Gray (out of the way so it's readable, but doesn't distract from the IP addresses).
+
     local dev ethintf connected=0
 
     for dev in /sys/class/net/*(N); do
-        if [[ -e "$dev/device" && ! -d "$dev/wireless" ]]; then
-            ethintf=${dev:t}
-            
-            # Skip if interface is down
-            if ip link show "$ethintf" | grep -qE "state UP|LOWER_UP"; then
+        ethintf=${dev:t}
+
+        # Match physical non-wireless interfaces OR bridges (like br0)
+        if { [[ -e "$dev/device" && ! -d "$dev/wireless" ]] || [[ -d "$dev/bridge" ]]; }; then
+
+            # Skip if interface is down or has no IPv4 address assigned
+            if ip link show "$ethintf" | grep -qE "state UP|LOWER_UP" && ip addr show "$ethintf" | grep -q "inet"; then
                 connected=1
-                echo "=== Interface: $ethintf ==="
-                ip addr show $ethintf | grep "link\|inet"
-                ip route | grep $ethintf
-                nmcli dev show $ethintf | grep -E "IP4|IP6"
+
+                # Header with interface name in Bold Cyan
+                _mw_hdr "=== Interface: ${_c_bold_cyan}${ethintf}${_c_reset} ==="
+
+                # Highlight interface name, IPs, MACs, and metrics
+                ip addr show $ethintf | grep "link\|inet" | _color_net "$ethintf"
+                ip route | grep -w $ethintf | _color_net "$ethintf"
+
+                # nmcli details colorized
+                nmcli dev show $ethintf | grep "IP4" | _color_net "$ethintf"
+
+                if nmcli dev show $ethintf | grep -q "IP6"; then
+                    _mw_sep
+                    nmcli dev show $ethintf | grep "IP6" | _color_net "$ethintf"
+                fi
+
                 echo ""
             fi
         fi
     done
 
     if (( connected == 0 )); then
-        echo "No active Ethernet interfaces connected."
+        echo "No active Ethernet or Bridge interfaces with IP addresses found."
     fi
 }
+
 # mw-ipwlan0 - show IP info for wlan0
 alias mw-ipwlan0='ip addr show wlp3s0 | grep "link\|inet";ip route | grep default | grep wlp0s20f3;nmcli dev show wlp3s0 | grep DNS | grep IP4'
 
