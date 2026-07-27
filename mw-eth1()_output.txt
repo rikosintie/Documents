@@ -1,0 +1,83 @@
+Output of the mw-eth() function with Kali running as a KVM NAT VM and Ubuntu running as a bridged VM.
+
+mw-eth1
+         === Interface: br0 ===
+
+    link/ether 96:1b:00:a7:1a:98 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.101/24 metric 1000 brd 192.168.1.255 scope global dynamic br0
+    inet6 fe80::941b:ff:fea7:1a98/64 scope link proto kernel_ll 
+default via 192.168.1.1 dev br0 proto dhcp src 192.168.1.101 metric 1000 
+192.168.1.0/24 dev br0 proto kernel scope link src 192.168.1.101 metric 1000 
+192.168.1.1 dev br0 proto dhcp scope link src 192.168.1.101 metric 1000 
+192.168.10.222 via 192.168.1.1 dev br0 proto dhcp src 192.168.1.101 metric 1000 
+IP4.ADDRESS[1]:                         192.168.1.101/24
+IP4.GATEWAY:                            192.168.1.1
+IP4.ROUTE[1]:                           dst = 192.168.1.0/24, nh = 0.0.0.0, mt = 1000
+IP4.ROUTE[2]:                           dst = 0.0.0.0/0, nh = 192.168.1.1, mt = 1000
+IP4.ROUTE[3]:                           dst = 192.168.1.1/32, nh = 0.0.0.0, mt = 1000
+IP4.ROUTE[4]:                           dst = 192.168.10.222/32, nh = 192.168.1.1, mt = 1000
+
+---------------------
+
+IP6.ADDRESS[1]:                         fe80::941b:ff:fea7:1a98/64
+IP6.GATEWAY:                            --
+IP6.ROUTE[1]:                           dst = fe80::/64, nh = ::, mt = 256
+
+---------------------
+
+Attached Active KVM VMs on br0:
+  Ubuntu-24.04-LegacySSH:   52:54:00:46:e5:93 -> 192.168.1.103/0
+
+
+         === Interface: enx0050b61ca0c0 ===
+
+    link/ether 00:50:b6:1c:a0:c0 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.10.154/24 brd 192.168.10.255 scope global dynamic noprefixroute enx0050b61ca0c0
+    inet6 fd24:42b2:12ce:0:86a8:dbfd:164d:a535/128 scope global dynamic noprefixroute 
+    inet6 fd24:42b2:12ce:0:7e3a:4f9c:2dea:35fd/64 scope global temporary dynamic 
+    inet6 fd24:42b2:12ce:0:27ac:b6d:3065:f317/64 scope global dynamic mngtmpaddr noprefixroute 
+    inet6 fe80::6c29:78ae:9bb7:6d09/64 scope link noprefixroute 
+default via 192.168.10.253 dev enx0050b61ca0c0 proto dhcp src 192.168.10.154 metric 100 
+192.168.10.0/24 dev enx0050b61ca0c0 proto kernel scope link src 192.168.10.154 metric 100 
+IP4.ADDRESS[1]:                         192.168.10.154/24
+IP4.GATEWAY:                            192.168.10.253
+IP4.ROUTE[1]:                           dst = 192.168.10.0/24, nh = 0.0.0.0, mt = 100
+IP4.ROUTE[2]:                           dst = 0.0.0.0/0, nh = 192.168.10.253, mt = 100
+IP4.DNS[1]:                             192.168.10.222
+IP4.DOMAIN[1]:                          pu.pri
+
+---------------------
+
+IP6.ADDRESS[1]:                         fd24:42b2:12ce:0:7e3a:4f9c:2dea:35fd/64
+IP6.ADDRESS[2]:                         fd24:42b2:12ce:0:86a8:dbfd:164d:a535/128
+IP6.ADDRESS[3]:                         fd24:42b2:12ce:0:27ac:b6d:3065:f317/64
+IP6.ADDRESS[4]:                         fe80::6c29:78ae:9bb7:6d09/64
+IP6.GATEWAY:                            fe80::fa7b:20ff:fe34:a3c6
+IP6.ROUTE[1]:                           dst = fe80::/64, nh = ::, mt = 1024
+IP6.ROUTE[2]:                           dst = fd24:42b2:12ce::/64, nh = ::, mt = 100
+IP6.ROUTE[3]:                           dst = ::/0, nh = fe80::fa7b:20ff:fe34:a3c6, mt = 20100
+IP6.ROUTE[4]:                           dst = fd24:42b2:12ce:0:86a8:dbfd:164d:a535/128, nh = ::, mt = 100
+IP6.DNS[1]:                             fd24:42b2:12ce::1
+IP6.SEARCHES[1]:                        pu.pri
+
+         === Interface: virbr0 ===
+
+    link/ether 52:54:00:10:14:52 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 
+IP4.ADDRESS[1]:                         192.168.122.1/24
+IP4.GATEWAY:                            --
+IP4.ROUTE[1]:                           dst = 192.168.122.0/24, nh = 0.0.0.0, mt = 0
+
+---------------------
+
+IP6.GATEWAY:                            --
+vm=Kali-2025.2
+mac=52:54:00:46:e5:93
+ip=192.168.1.103/0
+vm_bridge=virbr0
+
+---------------------
+
+Attached Active KVM VMs on virbr0:
+  Kali-2025.2:              52:54:00:ee:f1:c7 -> 192.168.122.234/0
