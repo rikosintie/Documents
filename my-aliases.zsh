@@ -96,8 +96,8 @@ mw-wifi() {
     done
 
     ip route | grep default
-    nmcli dev show $wintf | grep "IP4"
-    nmcli dev show $wintf | grep "IP6"
+    nmcli dev show $wintf | grep "IP4" | _color_net "$wintf"
+    nmcli dev show $wintf | grep "IP6" | _color_net "$wintf"
 }
 
 mw-eth() {
